@@ -15,5 +15,6 @@
           {{--<!--引用尾部视图resources/views/layouts/_footer.blade.php-->--}}
       </div>
     </div>
+    <script src="/js/app.js"></script>
   </body>
 </html>

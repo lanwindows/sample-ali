@@ -4,11 +4,35 @@
       <a href="/" id="logo">Sample App</a>
       <nav>
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="{{ route('help') }}">帮助</a></li>
-          {{--
-            {{　}} 是在 HTML 中内嵌 PHP 的 Blade 语法标识符，表示包含在该区块内的代码都将使用 PHP 来编译运行。route() 方法由 Laravel 提供，通过传递一个具体的路由名称来生成完整的 URL。
-            --}}
-          <li><a href="#">登录</a></li>
+          @if (Auth::check())
+          {{--<!--Laravel 提供了 Auth::check() 方法用于判断当前用户是否已登录，已登录返回 true，未登录返回 false。-->--}}
+            <li><a href="#">用户列表</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                {{ Auth::user()->name }} <b class="caret"></b>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="{{ route('users.show', Auth::user()->id) }}">个人中心</a></li>
+                <li><a href="#">编辑资料</a></li>
+                <li class="divider"></li>
+                <li>
+                  <a id="logout" href="#">
+                    <form action="{{ route('logout') }}" method="POST">
+                      {{ csrf_field() }}
+                      {{ method_field('DELETE') }}
+                      {{--
+                        <!--用户退出登录的按钮实际上是一个表单的提交按钮，在点击退出按钮之后浏览器将向 /logout 地址发送一个 POST 请求。但由于 RESTful 架构中会使用 DELETE 请求来删除一个资源，当用户退出时，实际上相当于删除了用户登录会话的资源，因此这里的退出操作需要使用 DELETE 请求来发送给服务器。由于浏览器不支持发送 DELETE 请求，因此我们需要使用一个隐藏域来伪造 DELETE 请求。在 Blade 模板中，我们可以使用 method_field 方法来创建隐藏域。其转化为 HTML 代码如下：<input type="hidden" name="_method" value="DELETE">-->
+                      --}}
+                      <button class="btn btn-block btn-danger" type="submit" name="button">退出</button>
+                    </form>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          @else
+            <li><a href="{{ route('help') }}">帮助</a></li>
+            <li><a href="{{ route('login') }}">登录</a></li>
+          @endif
         </ul>
       </nav>
     </div>
