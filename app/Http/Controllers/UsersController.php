@@ -9,6 +9,27 @@ use Auth;
 
 class UsersController extends Controller
 {
+
+    public function __construct()
+    {
+      $this->middleware('auth', [
+        'except' => ['show', 'create', 'store', 'index']
+      ]);
+
+      $this->middleware('guest', [
+        'only' => ['create'] //只让未登录用户访问注册页面
+      ]);
+    }
+    /*
+    __construct 是 PHP 的构造器方法，当一个类对象被创建之前该方法将会被调用。我们在 __construct 方法中调用了 middleware 方法，该方法接收两个参数，第一个为中间件的名称，第二个为要进行过滤的动作。我们通过 except 方法来设定 指定动作 不使用 Auth 中间件进行过滤，意为 —— 除了此处指定的动作以外，所有其他动作都必须登录用户才能访问，类似于黑名单的过滤机制。相反的还有 only 白名单方法，将只过滤指定动作。我们提倡在控制器 Auth 中间件使用中，首选 except 方法，这样的话，当你新增一个控制器方法时，默认是安全的，此为最佳实践。
+    */
+
+    public function index()
+    {
+      $users = User::paginate(10);//使用 paginate 方法来指定每页生成的数据数量为 10 条
+      return view('users.index', compact('users'));
+    }
+
     public function create()
     {
       return view('users.create');
@@ -60,10 +81,55 @@ class UsersController extends Controller
       return redirect()->route('users.show', [$user]);
       用户模型 User::create() 创建成功后会返回一个用户对象，并包含新注册用户的所有信息。我们将新注册用户的所有信息赋值给变量 $user，并通过路由跳转来进行数据绑定。
       注意这里是一个『约定优于配置』的体现，此时 $user 是 User 模型对象的实例。route() 方法会自动获取 Model 的主键，也就是数据表 users 的主键 id，以上代码等同于：redirect()->route('users.show', [$user->id]);
+      其中users.show路由名称来源于Route::resource('users', 'UsersController');
       */
 
       Auth::login($user);//用户注册成功后自动登录
       session()->flash('success','欢迎，新的开始！');
       return redirect()->route('users.show', [$user]);
+    }
+
+    public function edit(User $user)
+    {
+      $this->authorize('update', $user);
+      /*
+      这里 update 是指授权类里(app/Policies/UserPolicy.php)的 update 授权方法，$user 对应传参 update 授权方法的第二个参数。正如定义 update 授权方法时候提起的，调用时，默认情况下，不需要 传递第一个参数，也就是当前登录用户至该方法内，因为框架会自动加载当前登录用户。
+      */
+      return view('users.edit', compact('user'));
+    }
+
+    public function update(User $user, Request $request)
+    {
+      $this->validate($request, [
+        'name' => 'required|max:50',
+        'password' => 'nullable|confirmed|min:6'
+      ]);
+
+      $this->authorize('update', $user);
+
+      $data = [];
+      $data['name'] = $request->name;
+      if ($request->password) {
+        $data['password'] = bcrypt($request->password);
+      }
+      /*对传入的 password 进行判断，当其值不为空时才将其赋值给 data，避免将空白密码保存到数据库中*/
+
+      $user->update($data);
+
+      session()->flash('success', '个人资料跟新成功！');
+
+      return redirect()->route('users.show', $user->id);
+    }
+
+    public function destroy(User $user)
+    {
+      $this->authorize('destroy', $user); //使用 authorize 方法来对删除操作进行授权验证即可,参见用户策略app/Policies/UserPolicy.php的destroy方法
+      $user->delete();
+      session()->flash('success', '成功删除用户！');
+      return back();
+
+      /*
+      在 destroy 动作中，我们首先会根据路由发送过来的用户 id 进行数据查找，查找到指定用户之后再调用 Eloquent 模型提供的 delete 方法对用户资源进行删除，成功删除后在页面顶部进行消息提示。最后将用户重定向到上一次进行删除操作的页面，即用户列表页。
+      */
     }
 }

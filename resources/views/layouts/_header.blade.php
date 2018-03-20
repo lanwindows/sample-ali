@@ -6,14 +6,14 @@
         <ul class="nav navbar-nav navbar-right">
           @if (Auth::check())
           {{--<!--Laravel 提供了 Auth::check() 方法用于判断当前用户是否已登录，已登录返回 true，未登录返回 false。-->--}}
-            <li><a href="#">用户列表</a></li>
+            <li><a href="{{ route('users.index') }}">用户列表</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 {{ Auth::user()->name }} <b class="caret"></b>
               </a>
               <ul class="dropdown-menu">
                 <li><a href="{{ route('users.show', Auth::user()->id) }}">个人中心</a></li>
-                <li><a href="#">编辑资料</a></li>
+                <li><a href="{{ route('users.edit', Auth::user()->id) }}">编辑资料</a></li>
                 <li class="divider"></li>
                 <li>
                   <a id="logout" href="#">
