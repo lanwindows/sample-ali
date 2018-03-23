@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Models\User;
 use Auth;
+use Mail;
 
 class UsersController extends Controller
 {
@@ -13,8 +14,8 @@ class UsersController extends Controller
     public function __construct()
     {
       $this->middleware('auth', [
-        'except' => ['show', 'create', 'store', 'index']
-      ]);
+        'except' => ['show', 'create', 'store', 'index', 'confirmEmail']
+      ]);//未登录用户可以访问的方法
 
       $this->middleware('guest', [
         'only' => ['create'] //只让未登录用户访问注册页面
@@ -84,9 +85,11 @@ class UsersController extends Controller
       其中users.show路由名称来源于Route::resource('users', 'UsersController');
       */
 
-      Auth::login($user);//用户注册成功后自动登录
-      session()->flash('success','欢迎，新的开始！');
-      return redirect()->route('users.show', [$user]);
+      //Auth::login($user);//用户注册成功后自动登录
+      $this->sendEmailConfirmationTo($user);
+      session()->flash('success','已发送验证邮件，请查收！');
+      //return redirect()->route('users.show', [$user]);
+      return redirect('/');
     }
 
     public function edit(User $user)
@@ -132,4 +135,41 @@ class UsersController extends Controller
       在 destroy 动作中，我们首先会根据路由发送过来的用户 id 进行数据查找，查找到指定用户之后再调用 Eloquent 模型提供的 delete 方法对用户资源进行删除，成功删除后在页面顶部进行消息提示。最后将用户重定向到上一次进行删除操作的页面，即用户列表页。
       */
     }
+
+    protected function sendEmailConfirmationTo($user)
+    {
+      $view = 'emails.confirm';
+      $data = compact('user');
+      $from = 'lee@ee.ee';
+      $name = 'Lee';
+      $to = $user->email;
+      $subject = "感谢注册，请激活帐号！";
+
+      Mail::send($view, $data, function ($message) use ($from, $name, $to, $subject) {
+        $message->from($from, $name)->to($to)->subject($subject);
+      });
+      /*
+      在 Laravel 中，可以通过 Mail 接口的 send 方法来进行邮件发送,Mail 的 send 方法接收三个参数。
+      第一个参数是包含邮件消息的视图名称。
+      第二个参数是要传递给该视图的数据数组。
+      最后是一个用来接收邮件消息实例的闭包回调，我们可以在该回调中自定义邮件消息的发送者、接收者、邮件主题等信息。
+      */
+    }
+
+    public function confirmEmail($token)
+    {
+      $user = User::where('activation_token', $token)->firstOrFail();
+
+      $user->activated = true;
+      $user->activation_token = null;
+      $user->save();
+
+      Auth::login($user);
+      session()->flash('success', '激活成功！');
+      return redirect()->route('users.show', [$user]);
+    }
+    /*
+    在 confirmEmail 中，我们会先根据路由传送过来的 activation_token 参数从数据库中查找相对应的用户，Eloquent 的 where 方法接收两个参数，第一个参数为要进行查找的字段名称，第二个参数为对应的值，查询结果返回的是一个数组，因此我们需要使用 firstOrFail 方法来取出第一个用户，在查询不到指定用户时将返回一个 404 响应。在查询到用户信息后，我们会将该用户的激活状态改为 true，激活令牌设置为空。最后将激活成功的用户进行登录，并在页面上显示消息提示和重定向到个人页面。
+    */
+
 }
