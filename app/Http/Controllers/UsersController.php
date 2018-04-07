@@ -41,8 +41,15 @@ class UsersController extends Controller
     show() 方法传参时声明了类型 —— Eloquent 模型 User，对应的变量名 $user 会匹配路由片段中的 {user}，这样，Laravel 会自动注入与请求 URI 中传入的 ID 对应的用户模型实例。
     */
     {
-      return view('users.show', compact('user'));
-      /*将用户对象 $user 通过 compact 方法转化为一个关联数组，并作为第二个参数传递给 view 方法，将数据与视图进行绑定*/
+      $statuses = $user->statuses()
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(30);
+      /*
+      取出一个用户的所有微博,使用 Eloquent 模型提供的 orderBy 方法根据微博的创建时间 created_at 对微博进行排序,对取出的微博数据进行分页，在每个页面最多只显示 30 条微博
+      */
+
+      return view('users.show', compact('user', 'statuses'));
+      /*compact 方法可以同时接收多个参数，将用户数据 $user 和微博动态数据 $statuses 同时传递给用户个人页面的视图上。将对象通过 compact 方法转化为一个关联数组，并作为参数传递给 view 方法，将数据与视图进行绑定*/
     }
 
     public function store(Request $request)

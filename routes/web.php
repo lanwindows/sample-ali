@@ -49,3 +49,5 @@ Route::get('password/reset', 'Auth\ForgotPasswordController@showLinkRequestForm'
 Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail')->name('password.email');//邮箱发送重设链接
 Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');//密码更新页面
 Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');//执行密码更新操作
+
+Route::resource('statuses', 'StatusesController', ['only' => ['store', 'destroy']]);//使用 resource 方法来定义路由，则会生成完整的符合 RESTful 架构的路由，但创建和删除只需要两个动作，因此可以对 resource 传参 only 键指定只生成某几个动作的路由。

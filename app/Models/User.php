@@ -52,4 +52,15 @@ class User extends Authenticatable
     {
       $this->notify(new ResetPassword($token));
     }
+
+    public function statuses()
+    {
+      return $this->hasMany(Status::class);//进行模型关联，指明一个用户拥有多条微博，一对多关系
+    }
+
+    public function feed()
+    {
+      return $this->statuses()
+                  ->orderBy('created_at', 'desc');//定义一个 feed 方法，该方法将当前用户发布过的所有微博从数据库中取出，并根据创建时间来倒序排序
+    }
 }
