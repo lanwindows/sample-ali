@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateStatuesTable extends Migration
+class CreateFollowersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateStatuesTable extends Migration
      */
     public function up()
     {
-        Schema::create('statues', function (Blueprint $table) {
+        Schema::create('followers', function (Blueprint $table) {
             $table->increments('id');
-            $table->text('content');
-            $table->integer('user_id')->index();//储存微博发布者的个人 id,为了提高查询效率，为该字段加上索引
-            $table->index(['created_at']);
+            $table->integer('user_id')->index();
+            $table->integer('follower_id')->index();
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ class CreateStatuesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('statues');
+        Schema::dropIfExists('followers');
     }
 }

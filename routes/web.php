@@ -51,3 +51,9 @@ Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm
 Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');//执行密码更新操作
 
 Route::resource('statuses', 'StatusesController', ['only' => ['store', 'destroy']]);//使用 resource 方法来定义路由，则会生成完整的符合 RESTful 架构的路由，但创建和删除只需要两个动作，因此可以对 resource 传参 only 键指定只生成某几个动作的路由。
+
+Route::get('/users/{user}/followings', 'UsersController@followings')->name('users.followings');//显示用户的关注人列表
+Route::get('/users/{user}/followers', 'UsersController@followers')->name('users.followers');//显示用户的粉丝列表
+
+Route::post('/users/followers/{user}', 'FollowersController@store')->name('followers.store');//关注用户
+Route::delete('/users/followers/{user}', 'FollowersController@destroy')->name('followers.destroy');//取消关注用户

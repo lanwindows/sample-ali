@@ -179,4 +179,18 @@ class UsersController extends Controller
     在 confirmEmail 中，我们会先根据路由传送过来的 activation_token 参数从数据库中查找相对应的用户，Eloquent 的 where 方法接收两个参数，第一个参数为要进行查找的字段名称，第二个参数为对应的值，查询结果返回的是一个数组，因此我们需要使用 firstOrFail 方法来取出第一个用户，在查询不到指定用户时将返回一个 404 响应。在查询到用户信息后，我们会将该用户的激活状态改为 true，激活令牌设置为空。最后将激活成功的用户进行登录，并在页面上显示消息提示和重定向到个人页面。
     */
 
+    public function followings(User $user)
+    {
+      $users = $user->followings()->paginate(30);
+      $title = '关注的人';
+      return view('users.show_follow', compact('users','title'));
+    }
+
+    public function followers(User $user)
+    {
+      $users = $user->followers()->paginate(30);
+      $title = '粉丝';
+      return view('users.show_follow', compact('users', 'title'));
+    }
+
 }
